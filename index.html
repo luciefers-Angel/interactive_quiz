@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizWiz - Interactive Learning for Kids</title>
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#4F46E5',secondary:'#10B981'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+font-family: 'Nunito', sans-serif;
+background-color: #f9fafb;
+}
+.search-autocomplete {
+max-height: 0;
+overflow: hidden;
+transition: max-height 0.3s ease-out;
+}
+.search-autocomplete.active {
+max-height: 300px;
+overflow-y: auto;
+}
+.quiz-card {
+transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.quiz-card:hover {
+transform: translateY(-5px);
+box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+.quiz-option {
+transition: all 0.2s ease;
+}
+.quiz-option:hover {
+transform: translateX(5px);
+}
+.quiz-option.correct {
+background-color: rgba(16, 185, 129, 0.2);
+border-color: #10B981;
+}
+.quiz-option.incorrect {
+background-color: rgba(239, 68, 68, 0.2);
+border-color: #EF4444;
+}
+.grade-option {
+transition: all 0.2s ease;
+}
+.grade-option:hover {
+transform: scale(1.05);
+}
+</style>
+</head>
+<body>
+<header class="bg-white shadow-sm sticky top-0 z-50">
+<div class="container mx-auto px-4 py-3">
+<div class="flex items-center justify-between">
+<a href="#" class="text-2xl font-['Pacifico'] text-primary">logo</a>
+<div class="relative w-full max-w-xl mx-4">
+<div class="relative">
+<input type="text" id="search-input" placeholder="Search for quizzes..." class="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm">
+<div class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400">
+<i class="ri-search-line"></i>
+</div>
+</div>
+<div id="search-autocomplete" class="search-autocomplete absolute mt-1 w-full bg-white rounded-md shadow-lg z-10 border border-gray-200 hidden">
+  <div class="p-3 border-b border-gray-100">
+    <p class="text-xs text-gray-500">Search Results</p>
+  </div>
+  <div id="search-results" class="py-2">
+    <!-- Results will be inserted here -->
+  </div>
+</div>
+
+</div>
+</div>
+</div>
+<div class="flex items-center space-x-3">
+<button class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+<i class="ri-notification-3-line text-gray-600"></i>
+</button>
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
+JD
+</div>
+</div>
+</div>
+</div>
+</header>
+<nav class="bg-white border-b border-gray-200">
+<div class="container mx-auto px-4">
+<div class="flex items-center justify-between py-3 overflow-x-auto scrollbar-hide">
+<div class="flex space-x-6">
+<a href="#" class="category-link flex flex-col items-center px-3 py-2 rounded-md hover:bg-gray-50 transition-colors" data-category="all">
+<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-1">
+<i class="ri-apps-line text-blue-500"></i>
+</div>
+<span class="text-sm font-medium whitespace-nowrap">All Subjects</span>
+</a>
+<a href="#" class="category-link flex flex-col items-center px-3 py-2 rounded-md hover:bg-gray-50 transition-colors" data-category="science">
+<div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mb-1">
+<i class="ri-flask-line text-green-500"></i>
+</div>
+<span class="text-sm font-medium whitespace-nowrap">Science</span>
+</a>
+<a href="#" class="category-link flex flex-col items-center px-3 py-2 rounded-md hover:bg-gray-50 transition-colors" data-category="math">
+<div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mb-1">
+<i class="ri-calculator-line text-purple-500"></i>
+</div>
+<span class="text-sm font-medium whitespace-nowrap">Math</span>
+</a>
+<a href="#" class="category-link flex flex-col items-center px-3 py-2 rounded-md hover:bg-gray-50 transition-colors" data-category="english">
+<div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mb-1">
+<i class="ri-book-open-line text-yellow-500"></i>
+</div>
+<span class="text-sm font-medium whitespace-nowrap">English</span>
+</a>
+<a href="#" class="category-link flex flex-col items-center px-3 py-2 rounded-md hover:bg-gray-50 transition-colors" data-category="history">
+<div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mb-1">
+<i class="ri-ancient-gate-line text-red-500"></i>
+</div>
+<span class="text-sm font-medium whitespace-nowrap">History</span>
+</a>
+<a href="#" class="category-link flex flex-col items-center px-3 py-2 rounded-md hover:bg-gray-50 transition-colors" data-category="geography">
+<div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mb-1">
+<i class="ri-earth-line text-indigo-500"></i>
+</div>
+<span class="text-sm font-medium whitespace-nowrap">Geography</span>
+</a>
+<a href="#" class="category-link flex flex-col items-center px-3 py-2 rounded-md hover:bg-gray-50 transition-colors" data-category="art">
+<div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mb-1">
+<i class="ri-palette-line text-pink-500"></i>
+</div>
+<span class="text-sm font-medium whitespace-nowrap">Art</span>
+</a>
+</div>
+</div>
+</div>
+</nav>
+<main class="container mx-auto px-4 py-6">
+<section id="homepage" class="block">
+<div class="mb-8">
+<h1 class="text-2xl font-bold text-gray-800 mb-1">Featured Quizzes</h1>
+<p class="text-gray-600">Explore our most popular quizzes across all subjects</p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<div class="quiz-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+<div class="h-40 bg-blue-50 relative">
+<img src="https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20solar%20system%20with%20planets%2C%20stars%2C%20and%20space%20objects%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz1&orientation=landscape" alt="Solar System Quiz" class="w-full h-full object-cover object-top">
+<div class="absolute top-3 right-3 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">Science</div>
+</div>
+<div class="p-4">
+<h3 class="font-bold text-gray-800 mb-1">Solar System Exploration</h3>
+<div class="flex items-center text-gray-500 text-sm mb-3">
+<div class="flex items-center mr-3">
+<i class="ri-time-line mr-1"></i>
+<span>10 mins</span>
+</div>
+<div class="flex items-center">
+<i class="ri-question-line mr-1"></i>
+<span>10 questions</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex">
+<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Grade 3-5</span>
+</div>
+<button class="start-quiz-btn px-3 py-1 bg-primary text-white rounded-button text-sm font-medium hover:bg-primary/90 whitespace-nowrap" data-quiz="solar-system">Start Quiz</button>
+</div>
+</div>
+</div>
+<div class="quiz-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+<div class="h-40 bg-green-50 relative">
+<img src="https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20plant%20life%20cycle%20from%20seed%20to%20flower%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified%2C%20showing%20growth%20stages&width=400&height=300&seq=quiz2&orientation=landscape" alt="Plant Life Cycles Quiz" class="w-full h-full object-cover object-top">
+<div class="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">Science</div>
+</div>
+<div class="p-4">
+<h3 class="font-bold text-gray-800 mb-1">Plant Life Cycles</h3>
+<div class="flex items-center text-gray-500 text-sm mb-3">
+<div class="flex items-center mr-3">
+<i class="ri-time-line mr-1"></i>
+<span>8 mins</span>
+</div>
+<div class="flex items-center">
+<i class="ri-question-line mr-1"></i>
+<span>10 questions</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex">
+<span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Grade 2-4</span>
+</div>
+<button class="start-quiz-btn px-3 py-1 bg-primary text-white rounded-button text-sm font-medium hover:bg-primary/90 whitespace-nowrap" data-quiz="plant-life">Start Quiz</button>
+</div>
+</div>
+</div>
+<div class="quiz-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+<div class="h-40 bg-purple-50 relative">
+<img src="https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20basic%20math%20operations%20with%20numbers%2C%20symbols%2C%20and%20geometric%20shapes%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz3&orientation=landscape" alt="Math Fundamentals Quiz" class="w-full h-full object-cover object-top">
+<div class="absolute top-3 right-3 bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full">Math</div>
+</div>
+<div class="p-4">
+<h3 class="font-bold text-gray-800 mb-1">Math Fundamentals</h3>
+<div class="flex items-center text-gray-500 text-sm mb-3">
+<div class="flex items-center mr-3">
+<i class="ri-time-line mr-1"></i>
+<span>12 mins</span>
+</div>
+<div class="flex items-center">
+<i class="ri-question-line mr-1"></i>
+<span>10 questions</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex">
+<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">Grade 1-3</span>
+</div>
+<button class="start-quiz-btn px-3 py-1 bg-primary text-white rounded-button text-sm font-medium hover:bg-primary/90 whitespace-nowrap" data-quiz="math-fundamentals">Start Quiz</button>
+</div>
+</div>
+</div>
+<div class="quiz-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+<div class="h-40 bg-yellow-50 relative">
+<img src="https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20grammar%20concepts%20with%20letters%2C%20words%2C%20and%20sentences%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz4&orientation=landscape" alt="Grammar Basics Quiz" class="w-full h-full object-cover object-top">
+<div class="absolute top-3 right-3 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">English</div>
+</div>
+<div class="p-4">
+<h3 class="font-bold text-gray-800 mb-1">Grammar Basics</h3>
+<div class="flex items-center text-gray-500 text-sm mb-3">
+<div class="flex items-center mr-3">
+<i class="ri-time-line mr-1"></i>
+<span>15 mins</span>
+</div>
+<div class="flex items-center">
+<i class="ri-question-line mr-1"></i>
+<span>10 questions</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex">
+<span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Grade 2-4</span>
+</div>
+<button class="start-quiz-btn px-3 py-1 bg-primary text-white rounded-button text-sm font-medium hover:bg-primary/90 whitespace-nowrap" data-quiz="grammar-basics">Start Quiz</button>
+</div>
+</div>
+</div>
+<div class="quiz-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+<div class="h-40 bg-red-50 relative">
+<img src="https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20ancient%20civilizations%20with%20pyramids%2C%20temples%2C%20and%20historical%20artifacts%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz5&orientation=landscape" alt="Ancient Civilizations Quiz" class="w-full h-full object-cover object-top">
+<div class="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">History</div>
+</div>
+<div class="p-4">
+<h3 class="font-bold text-gray-800 mb-1">Ancient Civilizations</h3>
+<div class="flex items-center text-gray-500 text-sm mb-3">
+<div class="flex items-center mr-3">
+<i class="ri-time-line mr-1"></i>
+<span>10 mins</span>
+</div>
+<div class="flex items-center">
+<i class="ri-question-line mr-1"></i>
+<span>10 questions</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex">
+<span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Grade 4-6</span>
+</div>
+<button class="start-quiz-btn px-3 py-1 bg-primary text-white rounded-button text-sm font-medium hover:bg-primary/90 whitespace-nowrap" data-quiz="ancient-civilizations">Start Quiz</button>
+</div>
+</div>
+</div>
+<div class="quiz-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+<div class="h-40 bg-indigo-50 relative">
+<img src="https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20world%20map%20with%20continents%2C%20oceans%2C%20and%20geographic%20features%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz6&orientation=landscape" alt="World Geography Quiz" class="w-full h-full object-cover object-top">
+<div class="absolute top-3 right-3 bg-indigo-500 text-white text-xs font-bold px-2 py-1 rounded-full">Geography</div>
+</div>
+<div class="p-4">
+<h3 class="font-bold text-gray-800 mb-1">World Geography</h3>
+<div class="flex items-center text-gray-500 text-sm mb-3">
+<div class="flex items-center mr-3">
+<i class="ri-time-line mr-1"></i>
+<span>12 mins</span>
+</div>
+<div class="flex items-center">
+<i class="ri-question-line mr-1"></i>
+<span>10 questions</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex">
+<span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">Grade 3-5</span>
+</div>
+<button class="start-quiz-btn px-3 py-1 bg-primary text-white rounded-button text-sm font-medium hover:bg-primary/90 whitespace-nowrap" data-quiz="world-geography">Start Quiz</button>
+</div>
+</div>
+</div>
+<div class="quiz-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+<div class="h-40 bg-pink-50 relative">
+<img src="https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20art%20supplies%2C%20paint%20brushes%2C%20color%20wheel%2C%20and%20artistic%20elements%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz7&orientation=landscape" alt="Art Fundamentals Quiz" class="w-full h-full object-cover object-top">
+<div class="absolute top-3 right-3 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full">Art</div>
+</div>
+<div class="p-4">
+<h3 class="font-bold text-gray-800 mb-1">Art Fundamentals</h3>
+<div class="flex items-center text-gray-500 text-sm mb-3">
+<div class="flex items-center mr-3">
+<i class="ri-time-line mr-1"></i>
+<span>8 mins</span>
+</div>
+<div class="flex items-center">
+<i class="ri-question-line mr-1"></i>
+<span>10 questions</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex">
+<span class="px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-medium">Grade 1-3</span>
+</div>
+<button class="start-quiz-btn px-3 py-1 bg-primary text-white rounded-button text-sm font-medium hover:bg-primary/90 whitespace-nowrap" data-quiz="art-fundamentals">Start Quiz</button>
+</div>
+</div>
+</div>
+<div class="quiz-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+<div class="h-40 bg-blue-50 relative">
+<img src="https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20human%20body%20systems%20with%20organs%2C%20bones%2C%20and%20anatomical%20features%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz8&orientation=landscape" alt="Human Body Quiz" class="w-full h-full object-cover object-top">
+<div class="absolute top-3 right-3 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">Science</div>
+</div>
+<div class="p-4">
+<h3 class="font-bold text-gray-800 mb-1">Human Body Systems</h3>
+<div class="flex items-center text-gray-500 text-sm mb-3">
+<div class="flex items-center mr-3">
+<i class="ri-time-line mr-1"></i>
+<span>10 mins</span>
+</div>
+<div class="flex items-center">
+<i class="ri-question-line mr-1"></i>
+<span>10 questions</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex">
+<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Grade 4-6</span>
+</div>
+<button class="start-quiz-btn px-3 py-1 bg-primary text-white rounded-button text-sm font-medium hover:bg-primary/90 whitespace-nowrap" data-quiz="human-body">Start Quiz</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="category-page" class="hidden">
+<div class="flex items-center mb-6">
+<button id="back-to-home" class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors mr-3">
+<i class="ri-arrow-left-s-line text-gray-600"></i>
+</button>
+<h1 class="text-2xl font-bold text-gray-800" id="category-title">Science Quizzes</h1>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="category-quizzes">
+<!-- Quizzes will be dynamically populated based on category -->
+</div>
+<div>
+<h4 class="text-sm font-medium text-gray-700 mb-2">Topics</h4>
+<div class="space-y-2" id="category-topics">
+<!-- Topics will be dynamically populated based on category -->
+</div>
+</div>
+<button class="w-full mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-button text-sm font-medium hover:bg-gray-200 whitespace-nowrap">Clear Filters</button>
+</div>
+</div>
+<div class="lg:w-3/4">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="category-quizzes">
+<!-- Quizzes will be dynamically populated based on category -->
+</div>
+</div>
+</div>
+</section>
+<section id="grade-selection" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+<div class="bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4">
+<div class="text-center mb-6">
+<h2 class="text-xl font-bold text-gray-800 mb-2" id="grade-selection-title">Solar System Exploration</h2>
+<p class="text-gray-600">Select a grade level to start the quiz</p>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<button class="grade-option flex flex-col items-center justify-center p-4 rounded-xl border-2 border-gray-200 hover:border-primary transition-colors" data-grade="1">
+<div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+<span class="text-blue-500 font-bold">1</span>
+</div>
+<span class="font-medium text-gray-800">Grade 1</span>
+<span class="text-xs text-gray-500 mt-1">Very Easy</span>
+</button>
+<button class="grade-option flex flex-col items-center justify-center p-4 rounded-xl border-2 border-gray-200 hover:border-primary transition-colors" data-grade="2">
+<div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-2">
+<span class="text-green-500 font-bold">2</span>
+</div>
+<span class="font-medium text-gray-800">Grade 2</span>
+<span class="text-xs text-gray-500 mt-1">Easy</span>
+</button>
+<button class="grade-option flex flex-col items-center justify-center p-4 rounded-xl border-2 border-gray-200 hover:border-primary transition-colors" data-grade="3">
+<div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mb-2">
+<span class="text-yellow-500 font-bold">3</span>
+</div>
+<span class="font-medium text-gray-800">Grade 3</span>
+<span class="text-xs text-gray-500 mt-1">Medium</span>
+</button>
+<button class="grade-option flex flex-col items-center justify-center p-4 rounded-xl border-2 border-gray-200 hover:border-primary transition-colors" data-grade="4">
+<div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mb-2">
+<span class="text-orange-500 font-bold">4</span>
+</div>
+<span class="font-medium text-gray-800">Grade 4</span>
+<span class="text-xs text-gray-500 mt-1">Medium</span>
+</button>
+<button class="grade-option flex flex-col items-center justify-center p-4 rounded-xl border-2 border-gray-200 hover:border-primary transition-colors" data-grade="5">
+<div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-2">
+<span class="text-red-500 font-bold">5</span>
+</div>
+<span class="font-medium text-gray-800">Grade 5</span>
+<span class="text-xs text-gray-500 mt-1">Challenging</span>
+</button>
+<button class="grade-option flex flex-col items-center justify-center p-4 rounded-xl border-2 border-gray-200 hover:border-primary transition-colors" data-grade="6">
+<div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mb-2">
+<span class="text-purple-500 font-bold">6</span>
+</div>
+<span class="font-medium text-gray-800">Grade 6</span>
+<span class="text-xs text-gray-500 mt-1">Hard</span>
+</button>
+</div>
+<button id="close-grade-selection" class="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-button font-medium hover:bg-gray-200 whitespace-nowrap">Cancel</button>
+</div>
+</section>
+<section id="quiz-page" class="hidden">
+<div class="max-w-3xl mx-auto">
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center">
+<button id="quit-quiz" class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors mr-3">
+<i class="ri-close-line text-gray-600"></i>
+</button>
+<h1 class="text-xl font-bold text-gray-800" id="quiz-title">Solar System Exploration</h1>
+</div>
+<div class="flex items-center space-x-2">
+<div class="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+<i class="ri-time-line mr-1"></i>
+<span id="quiz-timer">25</span>
+</div>
+<div class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+<span id="quiz-progress">1</span>/<span id="quiz-total">10</span>
+</div>
+</div>
+</div>
+<div class="mb-6">
+<div class="w-full bg-gray-100 rounded-full h-2">
+<div id="quiz-progress-bar" class="bg-primary h-2 rounded-full" style="width: 10%"></div>
+</div>
+</div>
+<div id="quiz-question-container">
+<h2 class="text-lg font-bold text-gray-800 mb-4" id="quiz-question">What is the closest planet to the Sun?</h2>
+<div class="space-y-3" id="quiz-options">
+<button class="quiz-option w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-primary transition-colors flex items-center" data-correct="true">
+<span class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center mr-3 option-marker">
+<span class="option-letter">A</span>
+<i class="ri-check-line text-white text-sm hidden option-correct"></i>
+<i class="ri-close-line text-white text-sm hidden option-incorrect"></i>
+</span>
+<span class="option-text">Mercury</span>
+</button>
+<button class="quiz-option w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-primary transition-colors flex items-center" data-correct="false">
+<span class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center mr-3 option-marker">
+<span class="option-letter">B</span>
+<i class="ri-check-line text-white text-sm hidden option-correct"></i>
+<i class="ri-close-line text-white text-sm hidden option-incorrect"></i>
+</span>
+<span class="option-text">Venus</span>
+</button>
+<button class="quiz-option w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-primary transition-colors flex items-center" data-correct="false">
+<span class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center mr-3 option-marker">
+<span class="option-letter">C</span>
+<i class="ri-check-line text-white text-sm hidden option-correct"></i>
+<i class="ri-close-line text-white text-sm hidden option-incorrect"></i>
+</span>
+<span class="option-text">Earth</span>
+</button>
+<button class="quiz-option w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-primary transition-colors flex items-center" data-correct="false">
+<span class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center mr-3 option-marker">
+<span class="option-letter">D</span>
+<i class="ri-check-line text-white text-sm hidden option-correct"></i>
+<i class="ri-close-line text-white text-sm hidden option-incorrect"></i>
+</span>
+<span class="option-text">Mars</span>
+</button>
+</div>
+</div>
+</div>
+<div id="explanation-container" class="hidden bg-white rounded-xl shadow-sm p-6 mb-6">
+<div class="flex items-center mb-4">
+<div id="explanation-icon" class="w-10 h-10 rounded-full flex items-center justify-center mr-3"></div>
+<h3 id="explanation-title" class="text-lg font-bold"></h3>
+</div>
+<p id="explanation-text" class="text-gray-700 mb-4"></p>
+<button id="next-question" class="w-full px-4 py-3 bg-primary text-white rounded-button font-medium hover:bg-primary/90 whitespace-nowrap">Next Question</button>
+</div>
+</div>
+</section>
+<section id="quiz-summary" class="hidden">
+<div class="max-w-3xl mx-auto">
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+<div class="text-center mb-8">
+<div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+<i class="ri-trophy-line text-3xl text-primary"></i>
+</div>
+<h1 class="text-2xl font-bold text-gray-800 mb-2">Quiz Completed!</h1>
+<p class="text-gray-600" id="summary-quiz-title">Solar System Exploration</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+<div class="bg-blue-50 rounded-xl p-4 text-center">
+<p class="text-sm text-blue-700 mb-1">Score</p>
+<p class="text-2xl font-bold text-blue-700" id="summary-score">80%</p>
+</div>
+<div class="bg-green-50 rounded-xl p-4 text-center">
+<p class="text-sm text-green-700 mb-1">Correct Answers</p>
+<p class="text-2xl font-bold text-green-700" id="summary-correct">8/10</p>
+</div>
+<div class="bg-purple-50 rounded-xl p-4 text-center">
+<p class="text-sm text-purple-700 mb-1">Time Taken</p>
+<p class="text-2xl font-bold text-purple-700" id="summary-time">03:45</p>
+</div>
+</div>
+<div class="mb-6">
+<h3 class="font-bold text-gray-800 mb-4">Performance Breakdown</h3>
+<div class="w-full bg-gray-100 rounded-full h-4 mb-2">
+<div id="summary-performance-bar" class="bg-primary h-4 rounded-full" style="width: 80%"></div>
+</div>
+<div class="flex justify-between text-sm text-gray-600">
+<span>0%</span>
+<span>50%</span>
+<span>100%</span>
+</div>
+</div>
+<div class="mb-8">
+<h3 class="font-bold text-gray-800 mb-4">Question Review</h3>
+<div class="space-y-4" id="summary-questions">
+<!-- Question review will be dynamically populated -->
+</div>
+</div>
+<div class="flex flex-col sm:flex-row gap-4">
+<button id="retry-quiz" class="flex-1 px-4 py-3 bg-primary text-white rounded-button font-medium hover:bg-primary/90 whitespace-nowrap">Try Again</button>
+<button id="back-to-home-from-summary" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-button font-medium hover:bg-gray-200 whitespace-nowrap">Back to Home</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<script id="search-functionality">
+document.addEventListener('DOMContentLoaded', function () {
+  const searchInput = document.getElementById('search-input');
+  const autocompleteBox = document.getElementById('search-autocomplete');
+  const searchResults = document.getElementById('search-results');
+  const homepage = document.getElementById('homepage');
+  const categoryPage = document.getElementById('category-page');
+  const quizCards = document.querySelectorAll('.quiz-card');
+
+  const quizzes = [
+    { id: 'solar-system', title: 'Solar System Exploration', grade: '3-5', category: 'science' },
+    { id: 'plant-life', title: 'Plant Life Cycles', grade: '2-4', category: 'science' },
+    { id: 'math-fundamentals', title: 'Math Fundamentals', grade: '1-3', category: 'math' },
+    { id: 'grammar-basics', title: 'Grammar Basics', grade: '2-4', category: 'english' },
+    { id: 'ancient-civilizations', title: 'Ancient Civilizations', grade: '4-6', category: 'history' },
+    { id: 'world-geography', title: 'World Geography', grade: '3-5', category: 'geography' },
+    { id: 'art-fundamentals', title: 'Art Fundamentals', grade: '1-3', category: 'art' },
+    { id: 'human-body', title: 'Human Body Systems', grade: '4-6', category: 'science' }
+  ];
+
+  function filterQuizzes(term) {
+    quizCards.forEach(card => {
+      const title = card.querySelector('h3').textContent.toLowerCase();
+      if (title.includes(term)) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  searchInput.addEventListener('input', function () {
+    const searchTerm = this.value.toLowerCase().trim();
+
+    // Always show homepage during search
+    homepage.classList.remove('hidden');
+    categoryPage.classList.add('hidden');
+
+    if (searchTerm.length === 0) {
+      autocompleteBox.classList.add('hidden');
+      quizCards.forEach(card => card.style.display = 'block');
+      return;
+    }
+
+    const filtered = quizzes.filter(q =>
+      q.title.toLowerCase().includes(searchTerm) ||
+      q.grade.toLowerCase().includes(searchTerm) ||
+      q.category.toLowerCase().includes(searchTerm)
+    );
+
+    searchResults.innerHTML = filtered.length > 0
+      ? filtered.map(q => `
+        <a href="#" class="flex items-center px-3 py-2 hover:bg-gray-50 search-result" data-quiz="${q.id}">
+          <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+            <i class="ri-book-open-line text-blue-500"></i>
+          </div>
+          <div>
+            <p class="text-sm font-medium">${q.title}</p>
+            <p class="text-xs text-gray-500">${q.category.charAt(0).toUpperCase() + q.category.slice(1)} • Grade ${q.grade}</p>
+          </div>
+        </a>`).join('')
+      : '<p class="text-sm text-gray-500 px-3 py-2">No results found</p>';
+
+    autocompleteBox.classList.remove('hidden');
+    filterQuizzes(searchTerm);
+  });
+
+  searchResults.addEventListener('click', function (e) {
+    const target = e.target.closest('.search-result');
+    if (target) {
+      e.preventDefault();
+      const quizId = target.dataset.quiz;
+
+      // Ensure homepage is visible before clicking the quiz button
+      homepage.classList.remove('hidden');
+      categoryPage.classList.add('hidden');
+
+      setTimeout(() => {
+        const quizButton = document.querySelector(`[data-quiz='${quizId}']`);
+        if (quizButton) {
+          quizButton.click();
+        } else {
+          alert('Quiz not found or not visible.');
+        }
+        searchInput.value = '';
+        autocompleteBox.classList.add('hidden');
+      }, 100); // slight delay to ensure DOM is rendered
+    }
+  });
+});
+</script>
+
+
+<script id="navigation-functionality">
+document.addEventListener('DOMContentLoaded', function() {
+const homepage = document.getElementById('homepage');
+const categoryPage = document.getElementById('category-page');
+const categoryLinks = document.querySelectorAll('.category-link');
+const backToHomeBtn = document.getElementById('back-to-home');
+const categoryTitle = document.getElementById('category-title');
+const categoryQuizzes = document.getElementById('category-quizzes');
+const categoryTopics = document.getElementById('category-topics');
+// Initialize filter elements
+let gradeFilterBtn = null;
+let gradeFilterDropdown = null;
+let clearGradeFilter = null;
+let gradeFilterOptions = null;
+let selectedGrades = new Set();
+// Only try to get filter elements if they exist
+if (document.getElementById('grade-filter-btn')) {
+gradeFilterBtn = document.getElementById('grade-filter-btn');
+gradeFilterDropdown = document.getElementById('grade-filter-dropdown');
+clearGradeFilter = document.getElementById('clear-grade-filter');
+gradeFilterOptions = document.querySelectorAll('.grade-filter-option');
+// Add grade filter dropdown event
+gradeFilterBtn.addEventListener('click', function() {
+gradeFilterDropdown.classList.toggle('hidden');
+});
+// Close grade filter dropdown when clicking outside
+document.addEventListener('click', function(e) {
+if (!gradeFilterBtn.contains(e.target) && !gradeFilterDropdown.contains(e.target)) {
+gradeFilterDropdown.classList.add('hidden');
+}
+});
+// Clear grade filter
+clearGradeFilter.addEventListener('click', function() {
+gradeFilterOptions.forEach(option => {
+option.classList.remove('bg-primary', 'text-white');
+option.classList.add('bg-gray-100');
+});
+gradeFilterDropdown.classList.add('hidden');
+});
+// Add click events to grade filter options
+gradeFilterOptions.forEach(option => {
+option.addEventListener('click', function() {
+const grade = this.getAttribute('data-grade');
+if (selectedGrades.has(grade)) {
+selectedGrades.delete(grade);
+this.classList.remove('bg-primary', 'text-white');
+this.classList.add('bg-gray-100');
+} else {
+selectedGrades.add(grade);
+this.classList.add('bg-primary', 'text-white');
+this.classList.remove('bg-gray-100');
+}
+// Filter quizzes based on selected grades
+const quizCards = document.querySelectorAll('.quiz-card');
+quizCards.forEach(card => {
+const gradeRange = card.querySelector('.text-xs.font-medium').textContent.replace('Grade ', '').split('-');
+const minGrade = parseInt(gradeRange[0]);
+const maxGrade = parseInt(gradeRange[1] || gradeRange[0]);
+let showCard = selectedGrades.size === 0;
+selectedGrades.forEach(grade => {
+const gradeNum = parseInt(grade);
+if (gradeNum >= minGrade && gradeNum <= maxGrade) {
+showCard = true;
+}
+});
+card.style.display = showCard ? 'block' : 'none';
+});
+gradeFilterDropdown.classList.add('hidden');
+});
+});
+}
+// Category data
+const categories = {
+'science': {
+title: 'Science Quizzes',
+topics: ['Astronomy', 'Biology', 'Chemistry', 'Earth Science', 'Physics'],
+quizzes: [
+{
+title: 'Solar System Exploration',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20solar%20system%20with%20planets%2C%20stars%2C%20and%20space%20objects%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz1&orientation=landscape',
+time: '10 mins',
+questions: 10,
+grade: '3-5',
+id: 'solar-system'
+},
+{
+title: 'Plant Life Cycles',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20plant%20life%20cycle%20from%20seed%20to%20flower%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified%2C%20showing%20growth%20stages&width=400&height=300&seq=quiz2&orientation=landscape',
+time: '8 mins',
+questions: 10,
+grade: '2-4',
+id: 'plant-life'
+},
+{
+title: 'Human Body Systems',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20human%20body%20systems%20with%20organs%2C%20bones%2C%20and%20anatomical%20features%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz8&orientation=landscape',
+time: '10 mins',
+questions: 10,
+grade: '4-6',
+id: 'human-body'
+},
+{
+title: 'Weather and Climate',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20weather%20patterns%20with%20clouds%2C%20sun%2C%20rain%2C%20and%20climate%20indicators%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz9&orientation=landscape',
+time: '12 mins',
+questions: 10,
+grade: '3-5',
+id: 'weather-climate'
+},
+{
+title: 'Animal Adaptations',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20various%20animals%20showing%20their%20adaptations%20to%20different%20environments%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz10&orientation=landscape',
+time: '10 mins',
+questions: 10,
+grade: '2-4',
+id: 'animal-adaptations'
+},
+{
+title: 'Simple Machines',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20simple%20machines%20like%20levers%2C%20pulleys%2C%20and%20inclined%20planes%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz11&orientation=landscape',
+time: '8 mins',
+questions: 10,
+grade: '1-3',
+id: 'simple-machines'
+}
+]
+},
+'math': {
+title: 'Math Quizzes',
+topics: ['Addition & Subtraction', 'Multiplication & Division', 'Fractions', 'Geometry', 'Measurement'],
+quizzes: [
+{
+title: 'Math Fundamentals',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20basic%20math%20operations%20with%20numbers%2C%20symbols%2C%20and%20geometric%20shapes%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz3&orientation=landscape',
+time: '12 mins',
+questions: 10,
+grade: '1-3',
+id: 'math-fundamentals'
+}
+]
+},
+'english': {
+title: 'English Quizzes',
+topics: ['Grammar', 'Vocabulary', 'Reading Comprehension', 'Writing', 'Spelling'],
+quizzes: [
+{
+title: 'Grammar Basics',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20grammar%20concepts%20with%20letters%2C%20words%2C%20and%20sentences%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz4&orientation=landscape',
+time: '15 mins',
+questions: 10,
+grade: '2-4',
+id: 'grammar-basics'
+}
+]
+},
+'history': {
+title: 'History Quizzes',
+topics: ['Ancient Civilizations', 'World History', 'American History', 'Famous People', 'Historical Events'],
+quizzes: [
+{
+title: 'Ancient Civilizations',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20ancient%20civilizations%20with%20pyramids%2C%20temples%2C%20and%20historical%20artifacts%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz5&orientation=landscape',
+time: '10 mins',
+questions: 10,
+grade: '4-6',
+id: 'ancient-civilizations'
+}
+]
+},
+'geography': {
+title: 'Geography Quizzes',
+topics: ['World Geography', 'Continents', 'Countries', 'Landforms', 'Map Skills'],
+quizzes: [
+{
+title: 'World Geography',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20world%20map%20with%20continents%2C%20oceans%2C%20and%20geographic%20features%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz6&orientation=landscape',
+time: '12 mins',
+questions: 10,
+grade: '3-5',
+id: 'world-geography'
+}
+]
+},
+'art': {
+title: 'Art Quizzes',
+topics: ['Art History', 'Color Theory', 'Drawing Techniques', 'Famous Artists', 'Art Styles'],
+quizzes: [
+{
+title: 'Art Fundamentals',
+image: 'https://readdy.ai/api/search-image?query=colorful%20illustration%20of%20art%20supplies%2C%20paint%20brushes%2C%20color%20wheel%2C%20and%20artistic%20elements%2C%20educational%20style%2C%20vibrant%20colors%2C%20kid-friendly%2C%20digital%20art%2C%20clean%20background%2C%20simplified&width=400&height=300&seq=quiz7&orientation=landscape',
+time: '8 mins',
+questions: 10,
+grade: '1-3',
+id: 'art-fundamentals'
+}
+]
+}
+};
+// Show category page
+categoryLinks.forEach(link => {
+link.addEventListener('click', function(e) {
+e.preventDefault();
+const category = this.getAttribute('data-category');
+if (category === 'all') {
+return;
+}
+homepage.classList.add('hidden');
+categoryPage.classList.remove('hidden');
+// Update category title
+categoryTitle.textContent = categories[category].title;
+// Clear previous quizzes
+categoryQuizzes.innerHTML = '';
+// Add quizzes for this category
+categories[category].quizzes.forEach(quiz => {
+const quizCard = document.createElement('div');
+quizCard.className = 'quiz-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100';
+quizCard.innerHTML = `
+<div class="h-40 bg-blue-50 relative">
+<img src="${quiz.image}" alt="${quiz.title}" class="w-full h-full object-cover object-top">
+<div class="absolute top-3 right-3 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">${category.charAt(0).toUpperCase() + category.slice(1)}</div>
+</div>
+<div class="p-4">
+<h3 class="font-bold text-gray-800 mb-1">${quiz.title}</h3>
+<div class="flex items-center text-gray-500 text-sm mb-3">
+<div class="flex items-center mr-3">
+<i class="ri-time-line mr-1"></i>
+<span>${quiz.time}</span>
+</div>
+<div class="flex items-center">
+<i class="ri-question-line mr-1"></i>
+<span>${quiz.questions} questions</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex">
+<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Grade ${quiz.grade}</span>
+</div>
+<button class="start-quiz-btn px-3 py-1 bg-primary text-white rounded-button text-sm font-medium hover:bg-primary/90 whitespace-nowrap" data-quiz="${quiz.id}">Start Quiz</button>
+</div>
+</div>
+`;
+categoryQuizzes.appendChild(quizCard);
+});
+// Clear previous topics
+categoryTopics.innerHTML = '';
+// Add topics for this category
+categories[category].topics.forEach(topic => {
+const topicLabel = document.createElement('label');
+topicLabel.className = 'flex items-center';
+topicLabel.innerHTML = `
+<input type="checkbox" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary hidden category-topic-filter" value="${topic.toLowerCase().replace(/\s+/g, '-')}">
+<span class="w-4 h-4 border border-gray-300 rounded flex items-center justify-center mr-2 category-topic-checkbox">
+<i class="ri-check-line text-white text-xs hidden"></i>
+</span>
+<span class="text-sm text-gray-700">${topic}</span>
+`;
+categoryTopics.appendChild(topicLabel);
+});
+// Setup custom checkboxes
+setupCustomCheckboxes();
+});
+});
+// Back to home
+backToHomeBtn.addEventListener('click', function() {
+categoryPage.classList.add('hidden');
+homepage.classList.remove('hidden');
+});
+// Grade filter dropdown
+gradeFilterBtn.addEventListener('click', function() {
+gradeFilterDropdown.classList.toggle('hidden');
+});
+// Close grade filter dropdown when clicking outside
+document.addEventListener('click', function(e) {
+if (!gradeFilterBtn.contains(e.target) && !gradeFilterDropdown.contains(e.target)) {
+gradeFilterDropdown.classList.add('hidden');
+}
+});
+// Clear grade filter
+clearGradeFilter.addEventListener('click', function() {
+const gradeFilterOptions = document.querySelectorAll('.grade-filter-option');
+gradeFilterOptions.forEach(option => {
+option.classList.remove('bg-primary', 'text-white');
+option.classList.add('bg-gray-100');
+});
+gradeFilterDropdown.classList.add('hidden');
+});
+// Grade filter options
+// Use existing gradeFilterOptions that was declared earlier
+gradeFilterOptions.forEach(option => {
+option.addEventListener('click', function() {
+const grade = this.getAttribute('data-grade');
+if (selectedGrades.has(grade)) {
+selectedGrades.delete(grade);
+this.classList.remove('bg-primary', 'text-white');
+this.classList.add('bg-gray-100');
+} else {
+selectedGrades.add(grade);
+this.classList.add('bg-primary', 'text-white');
+this.classList.remove('bg-gray-100');
+}
+// Filter quizzes based on selected grades
+const quizCards = document.querySelectorAll('.quiz-card');
+quizCards.forEach(card => {
+const gradeRange = card.querySelector('.text-xs.font-medium').textContent.replace('Grade ', '').split('-');
+const minGrade = parseInt(gradeRange[0]);
+const maxGrade = parseInt(gradeRange[1] || gradeRange[0]);
+let showCard = selectedGrades.size === 0;
+selectedGrades.forEach(grade => {
+const gradeNum = parseInt(grade);
+if (gradeNum >= minGrade && gradeNum <= maxGrade) {
+showCard = true;
+}
+});
+card.style.display = showCard ? 'block' : 'none';
+});
+gradeFilterDropdown.classList.add('hidden');
+});
+});
+// Clear grade filter
+clearGradeFilter.addEventListener('click', function() {
+selectedGrades.clear();
+const gradeFilterOptions = document.querySelectorAll('.grade-filter-option');
+gradeFilterOptions.forEach(option => {
+option.classList.remove('bg-primary', 'text-white');
+option.classList.add('bg-gray-100');
+});
+// Show all quizzes
+const quizCards = document.querySelectorAll('.quiz-card');
+quizCards.forEach(card => {
+card.style.display = 'block';
+});
+gradeFilterDropdown.classList.add('hidden');
+});
+// Setup custom checkboxes
+function setupCustomCheckboxes() {
+const checkboxLabels = document.querySelectorAll('.category-grade-checkbox, .category-difficulty-checkbox, .category-topic-checkbox');
+checkboxLabels.forEach(label => {
+label.addEventListener('click', function() {
+const checkbox = this.previousElementSibling;
+const checkIcon = this.querySelector('i');
+checkbox.checked = !checkbox.checked;
+if (checkbox.checked) {
+this.classList.add('bg-primary', 'border-primary');
+checkIcon.classList.remove('hidden');
+} else {
+this.classList.remove('bg-primary', 'border-primary');
+checkIcon.classList.add('hidden');
+}
+});
+});
+}
+});
+</script>
+<script id="quiz-functionality">
+document.addEventListener('DOMContentLoaded', function() {
+const homepage = document.getElementById('homepage');
+const categoryPage = document.getElementById('category-page');
+const gradeSelection = document.getElementById('grade-selection');
+const quizPage = document.getElementById('quiz-page');
+const quizSummary = document.getElementById('quiz-summary');
+const gradeSelectionTitle = document.getElementById('grade-selection-title');
+const closeGradeSelection = document.getElementById('close-grade-selection');
+const gradeOptions = document.querySelectorAll('.grade-option');
+const quizTitle = document.getElementById('quiz-title');
+const quizTimer = document.getElementById('quiz-timer');
+const quizProgress = document.getElementById('quiz-progress');
+const quizTotal = document.getElementById('quiz-total');
+const quizProgressBar = document.getElementById('quiz-progress-bar');
+const quizQuestionContainer = document.getElementById('quiz-question-container');
+const quizQuestion = document.getElementById('quiz-question');
+const quizOptions = document.getElementById('quiz-options');
+const explanationContainer = document.getElementById('explanation-container');
+const explanationIcon = document.getElementById('explanation-icon');
+const explanationTitle = document.getElementById('explanation-title');
+const explanationText = document.getElementById('explanation-text');
+const nextQuestion = document.getElementById('next-question');
+const quitQuiz = document.getElementById('quit-quiz');
+const retryQuiz = document.getElementById('retry-quiz');
+const backToHomeFromSummary = document.getElementById('back-to-home-from-summary');
+const summaryQuizTitle = document.getElementById('summary-quiz-title');
+const summaryScore = document.getElementById('summary-score');
+const summaryCorrect = document.getElementById('summary-correct');
+const summaryTime = document.getElementById('summary-time');
+const summaryPerformanceBar = document.getElementById('summary-performance-bar');
+const summaryQuestions = document.getElementById('summary-questions');
+let currentQuiz = null;
+let currentGrade = null;
+let currentQuestionIndex = 0;
+let correctAnswers = 0;
+let timerInterval = null;
+let timeRemaining = 45;
+let totalTime = 0;
+let quizResults = [];
+// Quiz data
+const quizzes = {
+'solar-system': {
+title: 'Solar System Exploration',
+questions: [
+{
+question: 'What is the closest planet to the Sun?',
+options: ['Mercury', 'Venus', 'Earth', 'Mars'],
+correct: 0,
+explanation: 'Mercury is the closest planet to the Sun. It orbits at an average distance of about 36 million miles (58 million kilometers) from the Sun, which is much closer than any other planet.'
+},
+{
+question: 'Which planet is known as the "Red Planet"?',
+options: ['Jupiter', 'Mars', 'Venus', 'Saturn'],
+correct: 1,
+explanation: 'Mars is known as the "Red Planet" because of its reddish appearance, which is caused by iron oxide (rust) on its surface. This gives Mars its distinctive red color when viewed from Earth.'
+},
+{
+question: 'Which planet has the Great Red Spot?',
+options: ['Saturn', 'Neptune', 'Jupiter', 'Uranus'],
+correct: 2,
+explanation: 'Jupiter has the Great Red Spot, which is a giant storm system that has been raging for at least 400 years. It\'s a high-pressure region that appears as a reddish oval on Jupiter\'s surface and is larger than Earth.'
+},
+{
+question: 'Which planet has the most moons?',
+options: ['Earth', 'Mars', 'Saturn', 'Jupiter'],
+correct: 3,
+explanation: 'Jupiter has the most moons of any planet in our solar system, with 79 confirmed moons. Saturn is close behind with 82 moons. These gas giants have strong gravitational fields that can capture passing objects and turn them into moons.'
+},
+{
+question: 'What is the largest planet in our solar system?',
+options: ['Jupiter', 'Saturn', 'Neptune', 'Uranus'],
+correct: 0,
+explanation: 'Jupiter is the largest planet in our solar system. It\'s so big that more than 1,300 Earths could fit inside it! Jupiter is a gas giant primarily composed of hydrogen and helium.'
+},
+{
+question: 'Which planet is known for its beautiful rings?',
+options: ['Jupiter', 'Uranus', 'Neptune', 'Saturn'],
+correct: 3,
+explanation: 'Saturn is famous for its spectacular ring system, which is made up of ice particles, rocky debris, and dust. While other planets (Jupiter, Uranus, and Neptune) also have rings, Saturn\'s are by far the most visible and extensive.'
+},
+{
+question: 'Which planet rotates on its side?',
+options: ['Mars', 'Venus', 'Uranus', 'Mercury'],
+correct: 2,
+explanation: 'Uranus rotates on its side with an axial tilt of about 98 degrees. This means it essentially rolls around the Sun like a ball, rather than spinning like a top as the other planets do. This unusual orientation may have been caused by a collision with an Earth-sized object long ago.'
+},
+{
+question: 'Which is the hottest planet in our solar system?',
+options: ['Mercury', 'Venus', 'Mars', 'Jupiter'],
+correct: 1,
+explanation: 'Venus is the hottest planet in our solar system, with an average surface temperature of about 867°F (464°C). Although Mercury is closer to the Sun, Venus is hotter because its thick atmosphere of carbon dioxide traps heat in a runaway greenhouse effect.'
+},
+{
+question: 'How many planets in our solar system have rings?',
+options: ['One', 'Two', 'Three', 'Four'],
+correct: 3,
+explanation: 'Four planets in our solar system have rings: Jupiter, Saturn, Uranus, and Neptune. Saturn\'s rings are the most visible and spectacular, while the rings around the other planets are much fainter and were only discovered when spacecraft visited them.'
+},
+{
+question: 'Which planet takes the longest to orbit the Sun?',
+options: ['Uranus', 'Saturn', 'Neptune', 'Jupiter'],
+correct: 2,
+explanation: 'Neptune takes the longest to orbit the Sun, completing one orbit every 165 Earth years. This is because Neptune is the farthest planet from the Sun (since Pluto was reclassified as a dwarf planet), orbiting at an average distance of 2.8 billion miles (4.5 billion kilometers).'
+}
+]
+},
+'plant-life': {
+  title: 'Plant Life Cycles',
+  questions: {
+    '1': [
+      {
+        question: 'What is the first stage of a plant’s life cycle?',
+        options: ['Seed', 'Leaf', 'Flower', 'Fruit'],
+        correct: 0,
+        explanation: 'The first stage is the seed. It contains the baby plant and starts to grow under the right conditions.'
+      },
+      {
+        question: 'Which part of the plant absorbs water?',
+        options: ['Leaves', 'Stem', 'Roots', 'Flower'],
+        correct: 2,
+        explanation: 'Roots absorb water from the soil.'
+      }
+    ],
+    '6': [
+      {
+        question: 'What role does the xylem play in a plant?',
+        options: ['Absorbs sunlight', 'Carries water', 'Attracts bees', 'Stores food'],
+        correct: 1,
+        explanation: 'The xylem carries water and nutrients from the roots to other parts of the plant.'
+      },
+      {
+        question: 'Which gas is absorbed by plants during photosynthesis?',
+        options: ['Oxygen', 'Carbon Dioxide', 'Nitrogen', 'Hydrogen'],
+        correct: 1,
+        explanation: 'Plants absorb carbon dioxide during photosynthesis to produce oxygen and food.'
+      }
+    ]
+  }
+}
+};
+// Start quiz button click
+document.addEventListener('click', function(e) {
+if (e.target.classList.contains('start-quiz-btn')) {
+const quizId = e.target.getAttribute('data-quiz');
+currentQuiz = quizId;
+// Show grade selection
+gradeSelectionTitle.textContent = e.target.closest('.quiz-card').querySelector('h3').textContent;
+homepage.classList.add('hidden');
+categoryPage.classList.add('hidden');
+gradeSelection.classList.remove('hidden');
+}
+});
+// Close grade selection
+closeGradeSelection.addEventListener('click', function() {
+gradeSelection.classList.add('hidden');
+if (categoryPage.classList.contains('hidden') && homepage.classList.contains('hidden')) {
+homepage.classList.remove('hidden');
+}
+});
+// Grade option click
+gradeOptions.forEach(option => {
+option.addEventListener('click', function() {
+const grade = this.getAttribute('data-grade');
+currentGrade = grade;
+// Start quiz
+startQuiz();
+});
+});
+// Start quiz
+function startQuiz() {
+// Reset quiz state
+currentQuestionIndex = 0;
+correctAnswers = 0;
+timeRemaining = 25;
+totalTime = 0;
+quizResults = [];
+// Show quiz page
+gradeSelection.classList.add('hidden');
+quizPage.classList.remove('hidden');
+explanationContainer.classList.add('hidden');
+quizQuestionContainer.classList.remove('hidden');
+// Update quiz title
+quizTitle.textContent = quizzes[currentQuiz].title;
+// Update question count
+quizTotal.textContent = quizzes[currentQuiz].questions[currentGrade].length;
+// Load first question
+loadQuestion();
+// Start timer
+clearInterval(timerInterval);
+startTimer();
+
+}
+// Load question
+function loadQuestion() {
+const question = quizzes[currentQuiz].questions[currentGrade][currentQuestionIndex];
+// Update progress
+quizProgress.textContent = currentQuestionIndex + 1;
+quizProgressBar.style.width = `${((currentQuestionIndex + 1) / quizzes[currentQuiz].questions.length) * 100}%`;
+// Update question
+quizQuestion.textContent = question.question;
+// Clear previous options
+quizOptions.innerHTML = '';
+// Add options
+question.options.forEach((option, index) => {
+const optionButton = document.createElement('button');
+optionButton.className = 'quiz-option w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-primary transition-colors flex items-center';
+optionButton.setAttribute('data-index', index);
+optionButton.setAttribute('data-correct', index === question.correct);
+optionButton.innerHTML = `
+<span class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center mr-3 option-marker">
+<span class="option-letter">${String.fromCharCode(65 + index)}</span>
+<i class="ri-check-line text-white text-sm hidden option-correct"></i>
+<i class="ri-close-line text-white text-sm hidden option-incorrect"></i>
+</span>
+<span class="option-text">${option}</span>
+`;
+quizOptions.appendChild(optionButton);
+});
+// Reset timer
+clearInterval(timerInterval);
+timeRemaining = 25;
+quizTimer.textContent = timeRemaining;
+startTimer();
+// Add click event to options
+const optionButtons = document.querySelectorAll('.quiz-option');
+optionButtons.forEach(button => {
+button.addEventListener('click', handleOptionClick);
+});
+}
+// Handle option click
+function handleOptionClick(e) {
+clearInterval(timerInterval);
+const selectedOption = e.currentTarget;
+const isCorrect = selectedOption.getAttribute('data-correct') === 'true';
+const question = quizzes[currentQuiz].questions[currentQuestionIndex];
+const correctIndex = question.correct;
+// Disable all options
+const optionButtons = document.querySelectorAll('.quiz-option');
+optionButtons.forEach(button => {
+button.removeEventListener('click', handleOptionClick);
+button.classList.add('pointer-events-none');
+});
+// Mark selected option
+if (isCorrect) {
+selectedOption.classList.add('correct');
+selectedOption.querySelector('.option-marker').classList.add('bg-green-500', 'border-green-500');
+selectedOption.querySelector('.option-letter').classList.add('hidden');
+selectedOption.querySelector('.option-correct').classList.remove('hidden');
+correctAnswers++;
+} else {
+selectedOption.classList.add('incorrect');
+selectedOption.querySelector('.option-marker').classList.add('bg-red-500', 'border-red-500');
+selectedOption.querySelector('.option-letter').classList.add('hidden');
+selectedOption.querySelector('.option-incorrect').classList.remove('hidden');
+// Mark correct option
+optionButtons[correctIndex].classList.add('correct');
+optionButtons[correctIndex].querySelector('.option-marker').classList.add('bg-green-500', 'border-green-500');
+optionButtons[correctIndex].querySelector('.option-letter').classList.add('hidden');
+optionButtons[correctIndex].querySelector('.option-correct').classList.remove('hidden');
+}
+// Save result
+quizResults.push({
+question: question.question,
+userAnswer: selectedOption.querySelector('.option-text').textContent,
+correctAnswer: question.options[correctIndex],
+isCorrect: isCorrect,
+explanation: question.explanation
+});
+// Show explanation
+quizQuestionContainer.classList.add('hidden');
+explanationContainer.classList.remove('hidden');
+if (isCorrect) {
+explanationIcon.className = 'w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-3';
+explanationIcon.innerHTML = '<i class="ri-check-line"></i>';
+explanationTitle.textContent = 'Correct!';
+explanationTitle.className = 'text-lg font-bold text-green-500';
+} else {
+explanationIcon.className = 'w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 mr-3';
+explanationIcon.innerHTML = '<i class="ri-close-line"></i>';
+explanationTitle.textContent = 'Incorrect!';
+explanationTitle.className = 'text-lg font-bold text-red-500';
+}
+explanationText.textContent = question.explanation;
+// Update next button text for last question
+if (currentQuestionIndex === quizzes[currentQuiz].questions.length - 1) {
+nextQuestion.textContent = 'See Results';
+}
+}
+// Next question button click
+nextQuestion.addEventListener('click', function() {
+currentQuestionIndex++;
+if (currentQuestionIndex < quizzes[currentQuiz].questions.length) {
+// Load next question
+explanationContainer.classList.add('hidden');
+quizQuestionContainer.classList.remove('hidden');
+loadQuestion();
+} else {
+// Show summary
+showSummary();
+}
+});
+// Start timer
+function startTimer() {
+clearInterval(timerInterval);
+timerInterval = setInterval(function() {
+timeRemaining--;
+totalTime++;
+quizTimer.textContent = timeRemaining;
+if (timeRemaining <= 0) {
+clearInterval(timerInterval);
+// Auto-select wrong answer if time runs out
+const question = quizzes[currentQuiz].questions[currentQuestionIndex];
+const correctIndex = question.correct;
+// Save result
+quizResults.push({
+question: question.question,
+userAnswer: 'Time expired',
+correctAnswer: question.options[correctIndex],
+isCorrect: false,
+explanation: question.explanation
+});
+// Show explanation
+quizQuestionContainer.classList.add('hidden');
+explanationContainer.classList.remove('hidden');
+explanationIcon.className = 'w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 mr-3';
+explanationIcon.innerHTML = '<i class="ri-time-line"></i>';
+explanationTitle.textContent = 'Time\'s Up!';
+explanationTitle.className = 'text-lg font-bold text-red-500';
+explanationText.textContent = question.explanation;
+// Update next button text for last question
+if (currentQuestionIndex === quizzes[currentQuiz].questions.length - 1) {
+nextQuestion.textContent = 'See Results';
+}
+}
+}, 1000);
+}
+// Show summary
+function showSummary() {
+clearInterval(timerInterval);
+quizPage.classList.add('hidden');
+quizSummary.classList.remove('hidden');
+// Update summary
+summaryQuizTitle.textContent = quizzes[currentQuiz].title;
+const score = Math.round((correctAnswers / quizzes[currentQuiz].questions.length) * 100);
+summaryScore.textContent = `${score}%`;
+summaryCorrect.textContent = `${correctAnswers}/${quizzes[currentQuiz].questions.length}`;
+const minutes = Math.floor(totalTime / 60);
+const seconds = totalTime % 60;
+summaryTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+summaryPerformanceBar.style.width = `${score}%`;
+// Clear previous questions
+summaryQuestions.innerHTML = '';
+// Add questions
+quizResults.forEach((result, index) => {
+const questionDiv = document.createElement('div');
+questionDiv.className = 'p-4 rounded-lg border border-gray-200';
+const statusClass = result.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+const statusText = result.isCorrect ? 'Correct' : 'Incorrect';
+const statusIcon = result.isCorrect ? 'ri-check-line' : 'ri-close-line';
+questionDiv.innerHTML = `
+<div class="flex items-center justify-between mb-2">
+<span class="font-medium text-gray-800">Question ${index + 1}</span>
+<span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass} flex items-center">
+<i class="${statusIcon} mr-1"></i>
+${statusText}
+</span>
+</div>
+<p class="text-gray-700 mb-2">${result.question}</p>
+<div class="flex flex-col sm:flex-row text-sm mb-2">
+<div class="sm:w-1/2 mb-2 sm:mb-0">
+<span class="text-gray-500">Your answer:</span>
+<span class="${result.isCorrect ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}">${result.userAnswer}</span>
+</div>
+<div class="sm:w-1/2">
+<span class="text-gray-500">Correct answer:</span>
+<span class="text-green-600 font-medium">${result.correctAnswer}</span>
+</div>
+</div>
+<div class="mt-2 pt-2 border-t border-gray-100">
+<span class="text-xs font-medium text-gray-500">Explanation:</span>
+<p class="text-sm text-gray-700">${result.explanation}</p>
+</div>
+`;
+summaryQuestions.appendChild(questionDiv);
+});
+}
+// Quit quiz
+quitQuiz.addEventListener('click', function() {
+clearInterval(timerInterval);
+quizPage.classList.add('hidden');
+homepage.classList.remove('hidden');
+});
+// Retry quiz
+retryQuiz.addEventListener('click', function() {
+quizSummary.classList.add('hidden');
+startQuiz();
+});
+// Back to home from summary
+backToHomeFromSummary.addEventListener('click', function() {
+quizSummary.classList.add('hidden');
+homepage.classList.remove('hidden');
+});
+});
+</script>
+
+</body>
+</html>
